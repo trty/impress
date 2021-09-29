@@ -38,7 +38,7 @@
                         </el-table-column>
                         <el-table-column prop="descNow" label="你认识的">
                         </el-table-column>
-                        <el-table-column label="操作" width="150">
+                        <el-table-column label="操作" width="150" class="hidden-md-and-down" v-if="!ifSmall">
                             <template slot-scope="scope">
                                 <el-button @click.native.prevent="editRow(scope.$index)" type="primary" size="mini">
                                     编辑
@@ -62,10 +62,12 @@
                 <el-input v-model="input2" placeholder="你以为的"></el-input>
                 <el-input v-model="input3" placeholder="你认识的"></el-input>
                 <el-divider></el-divider>
-                <el-button type="primary" v-if="ifEdit<0" v-on:click="add">添加</el-button>
+                <el-button type="primary" v-if="ifEdit<0" v-on:click="add" plain>添加</el-button>
 
-                <el-button type="success" v-if="ifEdit>=0" v-on:click="save">保存</el-button>
-                <el-button type="warning" v-on:click="init">重置</el-button>
+                <el-button type="success" v-if="ifEdit>=0" v-on:click="save" plain>保存</el-button>
+                <el-button type="warning" v-on:click="init" plain>重置</el-button>
+                <el-button type="warning" v-on:click="show" v-if="ifSmall" plain>显示操作</el-button>
+                <el-button type="warning" v-on:click="show" v-if="!ifSmall" plain>关闭操作</el-button>
             </el-col>
         </el-row>
     </div>
@@ -102,7 +104,8 @@
             input3: "",
             result: [],
             restaurants: [],
-            state1: ''
+            state1: '',
+            ifSmall:false
         },
         created: function () {
             this.init();
@@ -114,6 +117,9 @@
                     //给朋友用的
                     this.ifQun = true
                     this.result = []
+                }
+                if(document.body.clientWidth<=768){
+                    this.ifSmall = true
                 }
             },
             //获取输入
@@ -159,6 +165,9 @@
             },
             removeRow: function (index) {
                 this.result.splice(parseInt(index), 1)
+            },
+            show:function(){
+                this.ifSmall = !this.ifSmall
             },
 
             clear: function () {

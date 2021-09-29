@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/display.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <title>朋友印象</title>
+</head>
+
+
+<body>
+    <div id="app">
+        <el-row :gutter="10" type="flex" justify="center">
+            <el-col :xs="24" :sm="20" :md="16" :lg="12" :xl="8">
+                <!-- <el-descriptions title="垂直带边框列表" direction="vertical" :column="3" border v-for="res in result">
+                        <el-descriptions-item label="">{{res.qq}}</el-descriptions-item>
+                        <el-descriptions-item label="">{{res.descBefore}}</el-descriptions-item>
+                        <el-descriptions-item label="">{{res.descNow}}</el-descriptions-item>
+                    </el-descriptions> -->
+                <template>
+                    <el-table :data="result" style="width: 100%" size="medium" stripe border>
+                        <el-table-column prop="qq" label="QQ" width="100">
+                            <template slot-scope="scope">
+                                <el-avatar size="large" shape="square"
+                                    :src="'https://q1.qlogo.cn/g?b=qq&nk='+scope.row.qq+'&s=100'">
+                                </el-avatar>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="descBefore" label="你以为的" width="200">
+
+                        </el-table-column>
+                        <el-table-column prop="descNow" label="你认识的">
+                        </el-table-column>
+                        <el-table-column label="操作" width="150">
+                            <template slot-scope="scope">
+                                <el-button @click.native.prevent="editRow(scope.$index)" type="primary" size="mini">
+                                    编辑
+                                </el-button>
+                                <el-button @click.native.prevent="removeRow(scope.$index)" type="danger" size="mini">
+                                    删除
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </template>
+                <el-divider></el-divider>
+                <el-input v-if="!ifQun" v-model="input1" placeholder="QQ号"></el-input>
+                <el-autocomplete v-if="ifQun" class="inline-input" v-model="state1" :fetch-suggestions="querySearch"
+                    placeholder="请输入内容" @select="handleSelect" popper-class="my-autocomplete">
+                    <template slot-scope="{ item }">
+                        <div class="name">{{ item.name }}</div>
+                        <span class="addr">{{ item.value }}</span>
+                    </template>
+                </el-autocomplete>
+                <el-input v-model="input2" placeholder="你以为的"></el-input>
+                <el-input v-model="input3" placeholder="你认识的"></el-input>
+                <el-divider></el-divider>
+                <el-button type="primary" v-if="ifEdit<0" v-on:click="add">添加</el-button>
+
+                <el-button type="success" v-if="ifEdit>=0" v-on:click="save">保存</el-button>
+                <el-button type="warning" v-on:click="init">重置</el-button>
+            </el-col>
+        </el-row>
+    </div>
+
+</body>
+<style>
+    .my-autocomplete li {
+        line-height: normal;
+        padding: 7px;
+    }
+
+    .my-autocomplete .name {
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    .my-autocomplete .addr {
+        font-size: 12px;
+        color: #b4b4b4;
+    }
+
+    .my-autocomplete .highlighted .addr {
+        color: #ddd;
+    }
+</style>
+<script>
+    const app = new Vue({
+        el: "#app",//用于挂载要管理的元素
+        data: {//定义数据
+            ifEdit: -1,
+            ifQun: false,
+            input1: "",
+            input2: "",
+            input3: "",
+            result: [],
+            restaurants: [],
+            state1: ''
+        },
+        created: function () {
+            this.init();
+        },
+        methods: {
+            //初始化
+            init: function () {
+                if (this.getQueryVariable("qun") == "1") {
+                    //给朋友用的
+                    this.ifQun = true
+                    this.result = [{
+                        qq: "1337670955",
+                        descBefore: "descBefore",
+                        descNow: "descNow"
+                    }]
+                }
+            },
+            //获取输入
+            getValue:function(){
+                var result = {
+                        qq:this.ifQun?this.state1:this.input1,
+                        descBefore:this.input2,
+                        descNow:this.input3
+                    }
+                return result
+            },
+            //校验
+            check:function(){
+                var value = this.ifQun?this.state1:this.input1
+                if(/^\d{6,10}$/.test(value)){
+                    return true
+                }
+                this.$message({message:'请输入6到10位QQ号',type: 'warning'});
+                return false
+            },
+            //操作
+            add: function () {
+                if(!this.check()){
+                    return ;
+                }
+                this.result.push(this.getValue())
+                this.clear()
+            },
+            save: function () {
+                if(!this.check()){
+                    return ;
+                }
+                Vue.set(this.result, this.ifEdit, this.getValue())
+                this.ifEdit = -1
+                this.clear()
+            },
+            editRow: function (index) {
+                this.ifEdit = parseInt(index)
+                this.state1 = this.result[index].qq
+                this.input1 = this.result[index].qq
+                this.input2 = this.result[index].descBefore
+                this.input3 = this.result[index].descNow
+            },
+            removeRow: function (index) {
+                this.result.splice(parseInt(index), 1)
+            },
+
+            clear: function () {
+                this.state1 = ""
+                this.input1 = ""
+                this.input2 = ""
+                this.input3 = ""
+            },
+            //工具函数
+            querySearch(queryString, cb) {
+                var restaurants = this.restaurants
+                var results = queryString ? restaurants.filter(this.createFilter(queryString)) : restaurants
+                // 调用 callback 返回建议列表的数据
+                cb(results)
+            },
+            createFilter(queryString) {
+                return (restaurant) => {
+                    return (restaurant.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0)
+                };
+            },
+            loadAll() {
+                return [{ value: "1337670955", name: "群主大人" },
+                { value: "910848091", name: "糖糖" }, { value: "397418464", name: "患患" }, { value: "2310697852", name: "表姐" }, { value: "1617577243", name: "染染" }, { value: "2900079540", name: "表弟" }, { value: "1142569715", name: "弟弟爱" }
+                ]
+
+            },
+            handleSelect(item) {
+                console.log(item.value)
+            },
+
+            //
+            getQueryVariable: function (variable) {
+                try {
+                    var query = window.location.search.substring(1);
+                    var vars = query.split("&")
+                    for (var i = 0; i < vars.length; i++) {
+                        var pair = vars[i].split("=")
+                        if (pair[0] == variable) {
+                            return pair[1]
+                        }
+                    }
+                    return ""
+                } catch (err) {
+                    return ""
+                }
+
+            }
+        },
+        mounted() {
+            this.restaurants = this.loadAll();
+        }
+    })
+</script>
+
+</html>

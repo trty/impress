@@ -113,10 +113,10 @@
         methods: {
             //初始化
             init: function () {
+                this.result = []
                 if (this.getQueryVariable("qun") == "1") {
                     //给朋友用的
                     this.ifQun = true
-                    this.result = []
                 }
                 if(document.body.clientWidth<=768){
                     this.ifSmall = true
